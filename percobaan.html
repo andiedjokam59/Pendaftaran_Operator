@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendaftaran Operator Baru - Insan Qur'any</title>
+
+    <link rel="icon" type="image/jpeg" href="logo sdc tw.png">
+    <meta name="theme-color" content="#ea580c">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #fff7ed; /* Orange 50 */
+        }
+        .rounded-box-input {
+            transition: all 0.2s ease-in-out;
+            background-color: #ffffff;
+            border: 2px solid #fed7aa; /* Orange 200 */
+            border-radius: 0.75rem;
+        }
+        .rounded-box-input:focus {
+            background-color: #ffffff;
+            border-color: #f97316; /* Orange 500 */
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+            outline: none;
+        }
+        .modal-backdrop {
+            transition: opacity 0.25s ease-out;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .modal-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content-card {
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease-out;
+            transform: scale(0.95) translateY(10px);
+            opacity: 0;
+        }
+        .modal-backdrop.active .modal-content-card {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-6 antialiased text-slate-800">
+
+    <!-- CONTAINER UTAMA -->
+    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-orange-100 w-full max-w-lg my-4 relative">
+        
+        <!-- Header Logo -->
+        <div class="flex justify-center mb-4">
+            <div class="w-20 h-20 rounded-full border-2 border-orange-400 p-1 bg-white shadow-md flex items-center justify-center overflow-hidden">
+                <img src="logo sdc tw.png" alt="Logo Insan Qur'any Tawangmangu" class="w-full h-full object-contain">
+            </div>
+        </div>
+
+        <div class="text-center mb-6">
+            <h2 class="text-xl font-bold text-slate-800">REGISTRASI OPERATOR</h2>
+            <p class="text-xs text-slate-500 mt-1">Pendaftaran Pengguna Sistem Insan Qur'any</p>
+            <div class="w-12 h-1 bg-orange-500 mx-auto mt-3 rounded-full"></div>
+        </div>
+
+        <!-- FORM REGISTRASI OPERATOR -->
+        <form id="formOperator" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Lengkap</label>
+                <input type="text" id="nama" required placeholder="Sesuai KTP/KK" oninput="autoCapitalize(this)" class="rounded-box-input w-full p-2.5 text-sm">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Jenis Kelamin</label>
+                <select id="jenis_kelamin" required class="rounded-box-input w-full p-2.5 text-sm">
+                    <option value="">-- Pilih Jenis Kelamin --</option>
+                    <option value="L">Laki-laki</option>
+                    <option value="P">Perempuan</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Tempat Lahir</label>
+                <input type="text" id="tempat_lahir" required placeholder="Kota/Kabupaten" oninput="autoCapitalize(this)" class="rounded-box-input w-full p-2.5 text-sm">
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="block text-xs font-semibold text-slate-700">Tanggal Lahir</label>
+                    <span id="displayUmur" class="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-200 hidden">
+                        Umur: <span id="umurVal">0</span> thn
+                    </span>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <select id="tgl_lahir_tgl" required onchange="hitungUmurOtomatis()" class="rounded-box-input w-full p-2.5 text-sm">
+                        <option value="">Tanggal</option>
+                    </select>
+                    <select id="tgl_lahir_bln" required onchange="hitungUmurOtomatis()" class="rounded-box-input w-full p-2.5 text-sm">
+                        <option value="">Bulan</option>
+                        <option value="01">Januari</option>
+                        <option value="02">Februari</option>
+                        <option value="03">Maret</option>
+                        <option value="04">April</option>
+                        <option value="05">Mei</option>
+                        <option value="06">Juni</option>
+                        <option value="07">Juli</option>
+                        <option value="08">Agustus</option>
+                        <option value="09">September</option>
+                        <option value="10">Oktober</option>
+                        <option value="11">November</option>
+                        <option value="12">Desember</option>
+                    </select>
+                    <select id="tgl_lahir_thn" required onchange="hitungUmurOtomatis()" class="rounded-box-input w-full p-2.5 text-sm">
+                        <option value="">Tahun</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Desa Tugas</label>
+                    <select id="desa" required class="rounded-box-input w-full p-2.5 text-sm">
+                        <option value="">-- Pilih Desa --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Kelompok Tugas</label>
+                    <select id="kelompok" required disabled class="rounded-box-input w-full p-2.5 text-sm bg-slate-50">
+                        <option value="">-- Pilih Desa Dulu --</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- STATUS TERTUTUP/OTOMATIS (OPERATOR) -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Status Pengguna</label>
+                <input type="text" value="Operator" disabled class="rounded-box-input w-full p-2.5 text-sm bg-orange-50 font-bold text-orange-600 cursor-not-allowed">
+            </div>
+
+            <button type="submit" id="btnSubmit" class="w-full py-3 mt-4 text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 active:scale-[0.98] rounded-xl shadow-md transition duration-200 flex items-center justify-center gap-2">
+                <span id="btnSpinner" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <span id="btnText">Daftarkan Sebagai Operator</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- CUSTOM MODAL NOTIFIKASI -->
+    <div id="customModal" class="modal-backdrop fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="modal-content-card bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4 border border-orange-100">
+            <div id="modalIcon" class="w-14 h-14 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+                💡
+            </div>
+            <div>
+                <h4 id="modalTitle" class="text-lg font-bold text-slate-800">Notifikasi</h4>
+                <p id="modalMessage" class="text-xs text-slate-600 mt-1 leading-relaxed"></p>
+            </div>
+            <div id="modalActions" class="flex gap-2 justify-center pt-2">
+                <button type="button" onclick="closeCustomModal()" class="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition shadow-md">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://xijlyydfogbkcctlycsb.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhpamx5eWRmb2dia2NjdGx5Y3NiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMzAxODYsImV4cCI6MjA5NzcwNjE4Nn0.JwqYXWEt2yiLioI1o9qZ3KRrak2rtzO1Tp0eN7AuAm4";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Data Desa & Kelompok
+        const rawDataWilayah = {
+            "Bandardawung": ["Bandardawung Barat", "Bandardawung Timur", "Dawung Atas", "Dawung Bawah", "Dawung Tengah", "Gamping", "Gondang Barat", "Gondang Tengah", "Gondang Timur", "Ngasem", "Pelas Barat", "Pelas Timur"],
+            "Karanglo Selatan": ["Blimbing 1", "Blimbing 2", "Blimbing 3", "Jabal Kanil", "Karanglo", "Pedan Selatan", "Pedan Utara"],
+            "Karanglo Utara": ["Cepogo", "Dukuh", "Pandeyan", "Plombokan", "Sadakan Kidul 1", "Sadakan Kidul 2", "Sekuwung"],
+            "Krangean": ["Gondang Boma", "Gondosuli", "Krangean Selatan", "Krangean Utara", "Nglegok Atas", "Nglegok Bawah", "Ngreso", "Somokado", "Tawang 1", "Tawang 2", "Watusambang"]
+        };
+
+        const dataWilayah = {};
+        Object.keys(rawDataWilayah).sort().forEach(key => {
+            dataWilayah[key] = rawDataWilayah[key].sort();
+        });
+
+        function toTitleCase(str) { 
+            if (!str) return '';
+            return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase()); 
+        }
+
+        function autoCapitalize(inputElement) {
+            let start = inputElement.selectionStart;
+            let end = inputElement.selectionEnd;
+            let capitalized = toTitleCase(inputElement.value);
+            if (inputElement.value !== capitalized) {
+                inputElement.value = capitalized;
+                inputElement.setSelectionRange(start, end);
+            }
+        }
+
+        function hitungUmurOtomatis() {
+            const tgl = document.getElementById('tgl_lahir_tgl').value;
+            const bln = document.getElementById('tgl_lahir_bln').value;
+            const thn = document.getElementById('tgl_lahir_thn').value;
+            const badgeUmur = document.getElementById('displayUmur');
+            const valUmur = document.getElementById('umurVal');
+
+            if (tgl && bln && thn) {
+                const birthDate = new Date(`${thn}-${bln}-${tgl}`);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                if (!isNaN(age) && age >= 0) {
+                    valUmur.textContent = age;
+                    badgeUmur.classList.remove('hidden');
+                    return age;
+                }
+            }
+            badgeUmur.classList.add('hidden');
+            return null;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initDateDropdowns();
+            initDesaDropdown();
+        });
+
+        function initDesaDropdown() {
+            const sel = document.getElementById('desa');
+            sel.innerHTML = '<option value="">-- Pilih Desa --</option>';
+            Object.keys(dataWilayah).forEach(d => sel.add(new Option(d, d)));
+        }
+
+        function initDateDropdowns() {
+            const tglSel = document.getElementById('tgl_lahir_tgl');
+            const thnSel = document.getElementById('tgl_lahir_thn');
+
+            for (let i = 1; i <= 31; i++) {
+                const val = i < 10 ? `0${i}` : `${i}`;
+                tglSel.add(new Option(val, val));
+            }
+
+            const currentYear = new Date().getFullYear();
+            for (let y = currentYear; y >= currentYear - 100; y--) {
+                thnSel.add(new Option(y, y));
+            }
+        }
+
+        document.getElementById('desa').addEventListener('change', function() {
+            const klp = document.getElementById('kelompok');
+            klp.innerHTML = '<option value="">-- Pilih Kelompok --</option>';
+            if(this.value && dataWilayah[this.value]) {
+                klp.disabled = false;
+                klp.classList.remove('bg-slate-50');
+                dataWilayah[this.value].forEach(k => klp.add(new Option(k, k)));
+            } else {
+                klp.disabled = true;
+                klp.classList.add('bg-slate-50');
+            }
+        });
+
+        function showCustomModal(title, message, icon = '💡') {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('modalIcon').textContent = icon;
+            
+            const modal = document.getElementById('customModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.add('active'), 10);
+        }
+
+        function closeCustomModal() {
+            const modal = document.getElementById('customModal');
+            modal.classList.remove('active');
+            setTimeout(() => modal.classList.add('hidden'), 250);
+        }
+
+        // SUBMIT FORM PENDAFTARAN OPERATOR
+        document.getElementById('formOperator').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('btnSubmit');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('btnSpinner');
+
+            btn.disabled = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = "Mendaftarkan...";
+
+            const tgl = document.getElementById('tgl_lahir_tgl').value;
+            const bln = document.getElementById('tgl_lahir_bln').value;
+            const thn = document.getElementById('tgl_lahir_thn').value;
+            const fullDate = `${thn}-${bln}-${tgl}`;
+            const calculatedAge = hitungUmurOtomatis();
+
+            // Status dikunci secara eksplisit sebagai "Operator"
+            const payload = {
+                nama: toTitleCase(document.getElementById('nama').value.trim()),
+                jenis_kelamin: document.getElementById('jenis_kelamin').value,
+                tempat_lahir: toTitleCase(document.getElementById('tempat_lahir').value.trim()),
+                tanggal_lahir: fullDate,
+                umur: calculatedAge,
+                desa: document.getElementById('desa').value,
+                kelompok: document.getElementById('kelompok').value,
+                status: "Operator"
+            };
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('data_jamaah')
+                    .insert([payload]);
+
+                if (error) {
+                    if (error.code === '23505') {
+                        showCustomModal("Pendaftaran Gagal", "Operator ini sudah terdaftar sebelumnya di database.", "⚠️");
+                    } else {
+                        showCustomModal("Gagal Mendaftar", "Terjadi kesalahan: " + error.message, "❌");
+                    }
+                } else {
+                    showCustomModal("Pendaftaran Berhasil!", "Operator baru telah berhasil didaftarkan dan tersimpan di database jamaah.", "🎉");
+                    document.getElementById('formOperator').reset();
+                    document.getElementById('displayUmur').classList.add('hidden');
+                    document.getElementById('kelompok').disabled = true;
+                    document.getElementById('kelompok').classList.add('bg-slate-50');
+                }
+            } catch (err) {
+                showCustomModal("Koneksi Terganggu", "Gagal menghubungkan ke server. Periksa koneksi internet Anda.", "⚠️");
+            } finally {
+                btn.disabled = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = "Daftarkan Sebagai Operator";
+            }
+        });
+    </script>
+</body>
+</html>
